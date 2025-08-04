@@ -13,13 +13,10 @@ const timeSinceScan = lastScanTime ? nowTime - lastScanTime : null;
 let goToAttendance = false;
 
 if (!lastScanTime || timeSinceScan > 2 * hour) {
-  // No scan yet or it's been 2+ hours — treat as new
   goToAttendance = true;
 } else if (timeSinceScan <= hour) {
-  // Within first hour — still go to Attendance
   goToAttendance = true;
 } else {
-  // Between 1 and 2 hours — go to Feedback
   goToAttendance = false;
 }
 
@@ -35,6 +32,6 @@ fetch('redirect.json')
     window.location.replace(targetUrl);
   })
   .catch(error => {
-    document.body.innerHTML = <h1>Oops!</h1><p>We couldn’t load your link. Please try again later.</p>;
+    document.body.innerHTML = `<h1>Oops!</h1><p>We couldn’t load your link. Please try again later.</p>`;
     console.error('Redirect failed:', error);
   });
