@@ -1,32 +1,40 @@
-(function () {
-  const _0x1d4c9e = Date;
-  const _0x3a1d95 = new _0x1d4c9e();
-  const _0x4a2cce = _0x3a1d95.getTime();
-  const _0x3fc63d = 60 * 60 * 1000;
-  const _0x3dd32f = localStorage.getItem('lastScanTime');
-  const _0x209f6f = _0x3dd32f ? parseInt(_0x3dd32f, 10) : null;
-  const _0x573f26 = _0x209f6f ? _0x4a2cce - _0x209f6f : null;
-  let _0x5d44b2 = false;
+const now = new Date();
+const nowTime = now.getTime(); // current timestamp in ms
+const hour = 60 * 60 * 1000; // 1 hour in ms
 
-  if (!_0x209f6f || _0x573f26 > 2 * _0x3fc63d) {
-    _0x5d44b2 = true;
-  } else if (_0x573f26 <= _0x3fc63d) {
-    _0x5d44b2 = true;
-  } else {
-    _0x5d44b2 = false;
-  }
+// Retrieve previous scan timestamp (if any)
+const lastScanTimestamp = localStorage.getItem('lastScanTime');
+const lastScanTime = lastScanTimestamp ? parseInt(lastScanTimestamp, 10) : null;
 
-  fetch('redirect.json')
-    .then(_0x4bc0b5 => _0x4bc0b5.json())
-    .then(_0x106250 => {
-      const _0x54c0d6 = _0x5d44b2 ? _0x106250.attendance : _0x106250.feedback;
-      if (_0x5d44b2) {
-        localStorage.setItem('lastScanTime', _0x4a2cce.toString());
-      }
-      window.location.replace(_0x54c0d6);
-    })
-    .catch(_0x31c30d => {
-      document.body.innerHTML = '<h1>Oops!</h1><p>We couldn’t load your link. Please try again later.</p>';
-      console.error('Redirect failed:', _0x31c30d);
-    });
-})();
+// Calculate time difference (if available)
+const timeSinceScan = lastScanTime ? nowTime - lastScanTime : null;
+
+// Determine which link to use
+let goToAttendance = false;
+
+if (!lastScanTime || timeSinceScan > 2 * hour) {
+  // No scan yet or it's been 2+ hours — treat as new
+  goToAttendance = true;
+} else if (timeSinceScan <= hour) {
+  // Within first hour — still go to Attendance
+  goToAttendance = true;
+} else {
+  // Between 1 and 2 hours — go to Feedback
+  goToAttendance = false;
+}
+
+fetch('redirect.json')
+  .then(response => response.json())
+  .then(data => {
+    const targetUrl = goToAttendance ? data.attendance : data.feedback;
+
+    if (goToAttendance) {
+      localStorage.setItem('lastScanTime', nowTime.toString());
+    }
+
+    window.location.replace(targetUrl);
+  })
+  .catch(error => {
+    document.body.innerHTML = <h1>Oops!</h1><p>We couldn’t load your link. Please try again later.</p>;
+    console.error('Redirect failed:', error);
+  });
