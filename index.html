@@ -7,7 +7,7 @@
   <style>
     body {
       margin: 0;
-      background: #1c273a;
+      background: #1c273a; /* ← updated hex */
       color: white;
       font-family: "Segoe UI", sans-serif;
       display: flex;
@@ -16,6 +16,8 @@
       justify-content: center;
       height: 100vh;
       text-align: center;
+      opacity: 1;
+      transition: opacity 1s ease;
     }
 
     img.logo {
@@ -34,5 +36,18 @@
   <img class="logo" src="academy-logo.png" alt="Essentia Academy Logo" />
   <img class="loader" src="loader.gif" alt="Loading..." />
 
+  <script>
+    // Wait 5 seconds, then fade out
+    setTimeout(() => {
+      document.body.style.opacity = '0';
+
+      // After fade completes, load redirect.js
+      setTimeout(() => {
+        const script = document.createElement('script');
+        script.src = 'redirect.js';
+        document.body.appendChild(script);
+      }, 1000); // 1s fade duration
+    }, 5000); // 5s delay before fade
+  </script>
 </body>
 </html>
