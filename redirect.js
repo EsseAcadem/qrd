@@ -1,33 +1,59 @@
 const now = new Date();
-const nowTime = now.getTime(); 
-const halfHour = 30 * 60 * 1000;
+const nowTime = now.getTime();
+
+const fiveMinutes = 5 * 60 * 1000;
+const fifteenMinutes = 15 * 60 * 1000;
 
 const lastScanTimestamp = localStorage.getItem('lastScanTime');
 const lastScanTime = lastScanTimestamp ? parseInt(lastScanTimestamp, 10) : null;
 
-const timeSinceScan = lastScanTime ? nowTime - lastScanTime : null;
+let target = "attendance"; // default
+let shouldUpdateTimestamp = false;
 
-let goToAttendance = false;
+if (lastScanTime) {
+  const timeSinceScan = nowTime - lastScanTime;
 
-if (!lastScanTime || timeSinceScan > halfHour) {
-  goToAttendance = true;
+  if (timeSinceScan < fiveMinutes) {
+    // Within 5 mins → Attendance
+    target = "attendance";
+  } else if (timeSinceScan < fifteenMinutes) {
+    // Between 5 and 15 mins → Feedback
+    target = "feedback";
+  } else {
+    // 15+ mins → Reset to Attendance
+    target = "attendance";
+    shouldUpdateTimestamp = true;
+  }
 } else {
-  goToAttendance = false; 
+  // No scan history → Attendance
+  target = "attendance";
+  shouldUpdateTimestamp = true;
 }
 
+// Fetch and redirect
 fetch('redirect.json')
-  .then(response => response.json())
+  .then(res => res.json())
   .then(data => {
-    const encodedUrl = goToAttendance ? data.attendance : data.feedback;
-    const targetUrl = atob(encodedUrl); // Decode from Base64
+    const encodedUrl = data[target];
+    const targetUrl = decodeBase64(encodedUrl);
 
-    if (goToAttendance) {
+    if (target === "attendance" && shouldUpdateTimestamp) {
       localStorage.setItem('lastScanTime', nowTime.toString());
     }
 
     window.location.replace(targetUrl);
   })
-  .catch(error => {
-    document.body.innerHTML = `<h1>Oops!</h1><p>We couldn’t load your link. Please try again later.</p>`;
-    console.error('Redirect failed:', error);
+  .catch(err => {
+    document.body.innerHTML = `<h1>Oops!</h1><p>Couldn’t load the redirect link.</p>`;
+    console.error('Redirect error:', err);
   });
+
+// Base64 decoder
+function decodeBase64(str) {
+  return decodeURIComponent(
+    atob(str)
+      .split('')
+      .map(c => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+      .join("")
+  );
+}
