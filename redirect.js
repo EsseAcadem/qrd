@@ -1,8 +1,9 @@
 const now = new Date();
 const nowTime = now.getTime(); // Current timestamp in ms
 
-const halfHour = 30 * 60 * 1000;
-const sixHours = 6 * 60 * 60 * 1000; // Changed from 2h to 6h
+// Changed from 30 minutes to 10 minutes
+const tenMinutes = 10 * 60 * 1000; 
+const sixHours = 6 * 60 * 60 * 1000; 
 
 const lastScanTimestamp = localStorage.getItem('lastScanTime');
 const lastScanTime = lastScanTimestamp ? parseInt(lastScanTimestamp, 10) : null;
@@ -13,11 +14,11 @@ let shouldUpdateTimestamp = false;
 if (lastScanTime) {
   const timeSinceScan = nowTime - lastScanTime;
 
-  if (timeSinceScan < halfHour) {
-    // Within 30 mins → Attendance
+  if (timeSinceScan < tenMinutes) {
+    // Within 10 mins → Attendance
     target = "attendance";
   } else if (timeSinceScan < sixHours) {
-    // Between 30 mins and 6 hours → Feedback
+    // Between 10 mins and 6 hours → Feedback
     target = "feedback";
   } else {
     // 6+ hours → reset to Attendance and update timestamp
